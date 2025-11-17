@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: study-mood-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=study_mood_tracker
+    networks:
+      - study-mood-network
+
+  machine-learning-client:
+    build:
+      context: ./machine-learning-client
+      dockerfile: Dockerfile
+    container_name: study-mood-ml-client
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/study_mood_tracker
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./machine-learning-client:/app
+      - ml_models:/app/models
+    networks:
+      - study-mood-network
+
+  web-app:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: study-mood-web-app
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/study_mood_tracker
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    volumes:
+      - ./web-app:/app
+    networks:
+      - study-mood-network
+
+volumes:
+  mongodb_data:
+  ml_models:
+
+networks:
+  study-mood-network:
+    driver: bridge
