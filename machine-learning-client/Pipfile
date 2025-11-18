@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymongo = "*"
 opencv-python-headless = "*"
 onnxruntime = "*"
 numpy = "*"
 pillow = "*"
+pymongo = "*"
 python-dotenv = "*"
 
 [dev-packages]
