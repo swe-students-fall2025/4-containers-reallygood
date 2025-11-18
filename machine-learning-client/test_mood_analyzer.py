@@ -14,7 +14,7 @@ from mood_analyzer import MoodAnalyzer
 
 @pytest.fixture(name="mock_mongodb")
 def mock_mongodb_fixture():
-    """Mock MongoDB connection."""
+    """Return a mocked MongoDB database object."""
     with patch("mood_analyzer.MongoClient") as mock:
         mock_client = MagicMock()
         mock_db = MagicMock()
@@ -25,7 +25,7 @@ def mock_mongodb_fixture():
 
 @pytest.fixture(name="mock_onnx_session")
 def mock_onnx_session_fixture():
-    """Mock ONNX runtime session."""
+    """Return a mocked ONNX runtime session."""
     with patch("mood_analyzer.ort.InferenceSession") as mock:
         mock_session = MagicMock()
         mock_input = MagicMock()
@@ -43,7 +43,7 @@ def mock_onnx_session_fixture():
 
 @pytest.fixture(name="analyzer")
 def analyzer_fixture(mock_mongodb, mock_onnx_session):
-    """Create MoodAnalyzer instance with mocked dependencies."""
+    """Create a MoodAnalyzer instance with mocked MongoDB and ONNX session."""
     _ = mock_mongodb
     _ = mock_onnx_session
     with patch("os.path.exists", return_value=True):
@@ -54,6 +54,7 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
 
 
 def test_categorize_mood_happy(analyzer):
+    """Categorize mood as happy when happiness dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.7,
@@ -68,6 +69,7 @@ def test_categorize_mood_happy(analyzer):
 
 
 def test_categorize_mood_unhappy(analyzer):
+    """Categorize mood as unhappy when negative emotions dominate."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -82,6 +84,7 @@ def test_categorize_mood_unhappy(analyzer):
 
 
 def test_categorize_mood_neutral(analyzer):
+    """Categorize mood as neutral when neutral dominates."""
     emotion_dict = {
         "neutral": 0.7,
         "happiness": 0.05,
@@ -96,6 +99,7 @@ def test_categorize_mood_neutral(analyzer):
 
 
 def test_categorize_mood_focused(analyzer):
+    """Categorize mood as focused when surprise dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -110,11 +114,13 @@ def test_categorize_mood_focused(analyzer):
 
 
 def test_categorize_mood_empty(analyzer):
+    """Return unknown when emotion dictionary is empty."""
     mood = analyzer.categorize_mood({})
     assert mood == "unknown"
 
 
 def test_preprocess_face(analyzer):
+    """Preprocess a random face image to the expected shape and range."""
     face_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
     processed = analyzer.preprocess_face(face_img)
 
@@ -125,7 +131,7 @@ def test_preprocess_face(analyzer):
 
 
 def test_detect_faces(analyzer):
-    """Ensure detect_faces calls the cascade and returns faces."""
+    """Ensure detect_faces calls the cascade and returns a non-empty list."""
     image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
 
     mock_cascade = MagicMock()
@@ -139,6 +145,7 @@ def test_detect_faces(analyzer):
 
 
 def test_predict_emotion(analyzer, mock_onnx_session):
+    """Predict emotion and ensure probabilities are well-formed."""
     face_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
     emotions = analyzer.predict_emotion(face_img)
 
@@ -153,7 +160,7 @@ def test_predict_emotion(analyzer, mock_onnx_session):
 
 
 def test_load_model_downloads_when_missing():
-    """_download_model should be called when model file is missing."""
+    """Call _download_model when the model file does not exist."""
     with patch("mood_analyzer.MongoClient") as mock_client, patch(
         "mood_analyzer.ort.InferenceSession"
     ) as mock_session, patch("os.path.exists", return_value=False), patch.object(
@@ -168,23 +175,30 @@ def test_load_model_downloads_when_missing():
 
 
 def test_decode_image_valid(analyzer):
-    """_decode_image should return an image for valid base64 input."""
+    """Decode a valid base64 image string to an OpenCV image."""
     img = np.zeros((10, 10, 3), dtype=np.uint8)
-    success, buf = cv2.imencode(".png", img)
+    success, buf = cv2.imencode(".png", img)  # type: ignore[attr-defined]  # pylint: disable=no-member
     assert success
     img_bytes = buf.tobytes()
     b64_str = "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
-    decoded = analyzer._decode_image(b64_str)
+    decoded = analyzer._decode_image(  # pylint: disable=protected-access
+        b64_str
+    )
     assert decoded is not None
     assert decoded.shape[0] > 0 and decoded.shape[1] > 0
 
 
 def test_update_snapshot_with_face_updates_db(analyzer):
+    """Update snapshot with face_detected, emotions and mood."""
     emotions = {"happiness": 0.8}
     mood = "happy"
 
-    analyzer._update_snapshot_with_face("snap1", emotions, mood)
+    analyzer._update_snapshot_with_face(  # pylint: disable=protected-access
+        "snap1",
+        emotions,
+        mood,
+    )
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
@@ -197,7 +211,10 @@ def test_update_snapshot_with_face_updates_db(analyzer):
 
 
 def test_update_snapshot_no_face_updates_db(analyzer):
-    analyzer._update_snapshot_no_face("snap2")
+    """Update snapshot when no face is detected."""
+    analyzer._update_snapshot_no_face(  # pylint: disable=protected-access
+        "snap2"
+    )
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
@@ -208,7 +225,11 @@ def test_update_snapshot_no_face_updates_db(analyzer):
 
 
 def test_mark_snapshot_error_updates_db(analyzer):
-    analyzer._mark_snapshot_error("snap3", "boom")
+    """Update snapshot with error information."""
+    analyzer._mark_snapshot_error(  # pylint: disable=protected-access
+        "snap3",
+        "boom",
+    )
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
@@ -222,16 +243,20 @@ class FakeCursor:
     """Minimal cursor-like object with limit() and iteration."""
 
     def __init__(self, docs):
+        """Store the list of documents."""
         self._docs = docs
 
     def limit(self, _):
+        """Return self to support chained limit()."""
         return self
 
     def __iter__(self):
+        """Return an iterator over stored documents."""
         return iter(self._docs)
 
 
 def test_process_pending_images_no_image_data(analyzer):
+    """Skip snapshot when image_data is missing."""
     snapshot = {"_id": "snap-no-image", "processed": False}
     cursor = FakeCursor([snapshot])
     analyzer.db.mood_snapshots.find.return_value = cursor
@@ -242,6 +267,7 @@ def test_process_pending_images_no_image_data(analyzer):
 
 
 def test_process_pending_images_decode_error(analyzer):
+    """Mark snapshot error when image decoding fails."""
     snapshot = {
         "_id": "snap-decode-fail",
         "processed": False,
@@ -251,7 +277,8 @@ def test_process_pending_images_decode_error(analyzer):
     analyzer.db.mood_snapshots.find.return_value = cursor
 
     with patch.object(analyzer, "_decode_image", return_value=None), patch.object(
-        analyzer, "_mark_snapshot_error"
+        analyzer,
+        "_mark_snapshot_error",
     ) as mock_mark:
         analyzer.process_pending_images()
         mock_mark.assert_called_once()
@@ -260,6 +287,7 @@ def test_process_pending_images_decode_error(analyzer):
 
 
 def test_process_pending_images_with_face(analyzer):
+    """Process snapshot when a face is detected."""
     snapshot = {
         "_id": "snap-face",
         "processed": False,
@@ -269,14 +297,25 @@ def test_process_pending_images_with_face(analyzer):
     analyzer.db.mood_snapshots.find.return_value = cursor
 
     fake_image = np.zeros((100, 100, 3), dtype=np.uint8)
-    with patch.object(analyzer, "_decode_image", return_value=fake_image), patch.object(
-        analyzer, "detect_faces", return_value=[(0, 0, 50, 50)]
+    with patch.object(
+        analyzer,
+        "_decode_image",
+        return_value=fake_image,
     ), patch.object(
-        analyzer, "predict_emotion", return_value={"happiness": 1.0}
+        analyzer,
+        "detect_faces",
+        return_value=[(0, 0, 50, 50)],
+    ), patch.object(
+        analyzer,
+        "predict_emotion",
+        return_value={"happiness": 1.0},
     ) as mock_predict, patch.object(
-        analyzer, "categorize_mood", return_value="happy"
+        analyzer,
+        "categorize_mood",
+        return_value="happy",
     ) as mock_cat, patch.object(
-        analyzer, "_update_snapshot_with_face"
+        analyzer,
+        "_update_snapshot_with_face",
     ) as mock_update:
         analyzer.process_pending_images()
 
@@ -290,6 +329,7 @@ def test_process_pending_images_with_face(analyzer):
 
 
 def test_process_pending_images_no_face(analyzer):
+    """Update snapshot when no face is detected in the image."""
     snapshot = {
         "_id": "snap-no-face",
         "processed": False,
@@ -299,16 +339,24 @@ def test_process_pending_images_no_face(analyzer):
     analyzer.db.mood_snapshots.find.return_value = cursor
 
     fake_image = np.zeros((100, 100, 3), dtype=np.uint8)
-    with patch.object(analyzer, "_decode_image", return_value=fake_image), patch.object(
-        analyzer, "detect_faces", return_value=[]
+    with patch.object(
+        analyzer,
+        "_decode_image",
+        return_value=fake_image,
     ), patch.object(
-        analyzer, "_update_snapshot_no_face"
+        analyzer,
+        "detect_faces",
+        return_value=[],
+    ), patch.object(
+        analyzer,
+        "_update_snapshot_no_face",
     ) as mock_no_face:
         analyzer.process_pending_images()
         mock_no_face.assert_called_once_with("snap-no-face")
 
 
 def test_process_pending_images_exception(analyzer):
+    """Mark snapshot error when processing raises an exception."""
     snapshot = {
         "_id": "snap-exception",
         "processed": False,
@@ -317,8 +365,13 @@ def test_process_pending_images_exception(analyzer):
     cursor = FakeCursor([snapshot])
     analyzer.db.mood_snapshots.find.return_value = cursor
 
-    with patch.object(analyzer, "_decode_image", side_effect=ValueError("bad")), patch.object(
-        analyzer, "_mark_snapshot_error"
+    with patch.object(
+        analyzer,
+        "_decode_image",
+        side_effect=ValueError("bad"),
+    ), patch.object(
+        analyzer,
+        "_mark_snapshot_error",
     ) as mock_mark:
         analyzer.process_pending_images()
         mock_mark.assert_called_once()
@@ -328,8 +381,12 @@ def test_process_pending_images_exception(analyzer):
 
 
 def test_run_handles_keyboard_interrupt(analyzer):
-    """run() should exit when KeyboardInterrupt is raised."""
-    with patch.object(analyzer, "process_pending_images", side_effect=KeyboardInterrupt), patch(
+    """Exit the main loop cleanly on KeyboardInterrupt."""
+    with patch.object(
+        analyzer,
+        "process_pending_images",
+        side_effect=KeyboardInterrupt,
+    ), patch(
         "mood_analyzer.time.sleep"
     ) as mock_sleep:
         analyzer.run()
