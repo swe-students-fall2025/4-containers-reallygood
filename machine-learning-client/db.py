@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MONGO_URI = os.getenv("MONGO_URI")
-MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "SEProject_ML")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "study_mood_tracker")
 
 _client: MongoClient | None = None
 
