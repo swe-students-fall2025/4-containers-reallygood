@@ -2,15 +2,17 @@
 Tests for MoodAnalyzer
 """
 
-import pytest
-import numpy as np
-from unittest.mock import Mock, patch, MagicMock
-from mood_analyzer import MoodAnalyzer
+from unittest.mock import patch, MagicMock  # 标准库先导入
+
+import numpy as np  # 第三方库
+import pytest  # 第三方库
+
+from mood_analyzer import MoodAnalyzer  # 本地模块放最后
 
 
-@pytest.fixture
-def mock_mongodb():
-    """Mock MongoDB connection"""
+@pytest.fixture(name="mock_mongodb")
+def mock_mongodb_fixture():
+    """Mock MongoDB connection."""
     with patch("mood_analyzer.MongoClient") as mock:
         mock_client = MagicMock()
         mock_db = MagicMock()
@@ -19,9 +21,9 @@ def mock_mongodb():
         yield mock_db
 
 
-@pytest.fixture
-def mock_onnx_session():
-    """Mock ONNX runtime session"""
+@pytest.fixture(name="mock_onnx_session")
+def mock_onnx_session_fixture():
+    """Mock ONNX runtime session."""
     with patch("mood_analyzer.ort.InferenceSession") as mock:
         mock_session = MagicMock()
         mock_input = MagicMock()
@@ -38,16 +40,20 @@ def mock_onnx_session():
         yield mock_session
 
 
-@pytest.fixture
-def analyzer(mock_mongodb, mock_onnx_session):
-    """Create MoodAnalyzer instance with mocked dependencies"""
+@pytest.fixture(name="analyzer")
+def analyzer_fixture(mock_mongodb, mock_onnx_session):
+    """Create MoodAnalyzer instance with mocked dependencies."""
+    # mock_mongodb 和 mock_onnx_session fixture 会在这里被使用，
+    # 避免 unused-argument 的 warning
+    _ = mock_mongodb
+    _ = mock_onnx_session
     with patch("os.path.exists", return_value=True):
         analyzer = MoodAnalyzer("mongodb://test:27017/test")
         return analyzer
 
 
 def test_categorize_mood_happy(analyzer):
-    """Test mood categorization for happy emotion"""
+    """Test mood categorization for happy emotion."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.7,
@@ -62,7 +68,7 @@ def test_categorize_mood_happy(analyzer):
 
 
 def test_categorize_mood_unhappy(analyzer):
-    """Test mood categorization for unhappy emotions"""
+    """Test mood categorization for unhappy emotions."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -77,7 +83,7 @@ def test_categorize_mood_unhappy(analyzer):
 
 
 def test_categorize_mood_neutral(analyzer):
-    """Test mood categorization for neutral emotion"""
+    """Test mood categorization for neutral emotion."""
     emotion_dict = {
         "neutral": 0.7,
         "happiness": 0.05,
@@ -92,7 +98,7 @@ def test_categorize_mood_neutral(analyzer):
 
 
 def test_categorize_mood_focused(analyzer):
-    """Test mood categorization for focused/surprised emotion"""
+    """Test mood categorization for focused/surprised emotion."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -107,13 +113,13 @@ def test_categorize_mood_focused(analyzer):
 
 
 def test_categorize_mood_empty(analyzer):
-    """Test mood categorization with empty emotion dict"""
+    """Test mood categorization with empty emotion dict."""
     mood = analyzer.categorize_mood({})
     assert mood == "unknown"
 
 
 def test_preprocess_face(analyzer):
-    """Test face preprocessing"""
+    """Test face preprocessing."""
     # Create a dummy face image
     face_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
 
@@ -132,7 +138,7 @@ def test_preprocess_face(analyzer):
 
 
 def test_detect_faces(analyzer):
-    """Test face detection"""
+    """Test face detection."""
     # Create a dummy image
     image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
 
@@ -147,7 +153,7 @@ def test_detect_faces(analyzer):
 
 
 def test_predict_emotion(analyzer, mock_onnx_session):
-    """Test emotion prediction"""
+    """Test emotion prediction."""
     # Create a dummy face image
     face_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
 
