@@ -177,14 +177,12 @@ def test_load_model_downloads_when_missing():
 def test_decode_image_valid(analyzer):
     """Decode a valid base64 image string to an OpenCV image."""
     img = np.zeros((10, 10, 3), dtype=np.uint8)
-    success, buf = cv2.imencode(".png", img)  # type: ignore[attr-defined]  # pylint: disable=no-member
+    success, buf = cv2.imencode(".png", img)  # pylint: disable=no-member
     assert success
     img_bytes = buf.tobytes()
     b64_str = "data:image/png;base64," + base64.b64encode(img_bytes).decode("utf-8")
 
-    decoded = analyzer._decode_image(  # pylint: disable=protected-access
-        b64_str
-    )
+    decoded = analyzer._decode_image(b64_str)  # pylint: disable=protected-access
     assert decoded is not None
     assert decoded.shape[0] > 0 and decoded.shape[1] > 0
 
@@ -212,9 +210,7 @@ def test_update_snapshot_with_face_updates_db(analyzer):
 
 def test_update_snapshot_no_face_updates_db(analyzer):
     """Update snapshot when no face is detected."""
-    analyzer._update_snapshot_no_face(  # pylint: disable=protected-access
-        "snap2"
-    )
+    analyzer._update_snapshot_no_face("snap2")  # pylint: disable=protected-access
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
@@ -386,8 +382,6 @@ def test_run_handles_keyboard_interrupt(analyzer):
         analyzer,
         "process_pending_images",
         side_effect=KeyboardInterrupt,
-    ), patch(
-        "mood_analyzer.time.sleep"
-    ) as mock_sleep:
+    ), patch("mood_analyzer.time.sleep") as mock_sleep:
         analyzer.run()
         mock_sleep.assert_not_called()
