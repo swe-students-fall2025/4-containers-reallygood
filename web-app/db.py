@@ -1,4 +1,5 @@
 """Database connection helpers for the web application."""
+
 # web-app/db.py
 import os
 

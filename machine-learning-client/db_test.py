@@ -2,7 +2,7 @@
 
 # machine-learning-client/db_manual_check.py
 from datetime import datetime
-from db import get_collection
+from ml_db import get_collection
 
 
 def main():

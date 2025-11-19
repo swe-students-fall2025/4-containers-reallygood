@@ -1,4 +1,5 @@
 """End-to-end test helper for creating and polling mood snapshots."""
+
 # web-app/test_face_snapshot.py
 
 import base64

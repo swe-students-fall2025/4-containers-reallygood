@@ -10,10 +10,13 @@ flask = "*"
 pymongo = "*"
 python-dotenv = "*"
 requests = "*"
+tomli = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-flask = "*"
+typing_extensions = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"
