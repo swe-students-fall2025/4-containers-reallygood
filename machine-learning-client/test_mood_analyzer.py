@@ -1,3 +1,7 @@
+"""
+Tests for MoodAnalyzer.
+"""
+
 from unittest.mock import patch, MagicMock
 
 import base64
@@ -6,6 +10,7 @@ import numpy as np
 import pytest
 
 from mood_analyzer import MoodAnalyzer
+
 
 @pytest.fixture(name="mock_mongodb")
 def mock_mongodb_fixture():
