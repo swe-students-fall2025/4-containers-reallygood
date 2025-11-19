@@ -7,13 +7,15 @@ from bson import ObjectId
 from db import get_collection
 
 
-def create_mood_snapshot(image_data: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+def create_mood_snapshot(
+    image_data: str, metadata: Optional[Dict[str, Any]] = None
+) -> str:
     """
-    Insert a snapshot to be proceed: 
+    Insert a snapshot to be proceed:
     - image_data: base64 string
     - processed: False
     - created_at: current time
-    
+
     Return id
     """
     col = get_collection("mood_snapshots")
@@ -48,7 +50,7 @@ def get_snapshot_by_id_raw(snapshot_id: str) -> Optional[Dict[str, Any]]:
 def get_snapshot_view(snapshot_id: str) -> Optional[Dict[str, Any]]:
     """
     Parse Data
-    Result: 
+    Result:
       - id
       - status: "pending" / "done" / "error"
       - processed (bool)

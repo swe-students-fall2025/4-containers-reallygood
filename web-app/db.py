@@ -13,6 +13,7 @@ DB_NAME = os.getenv("MONGO_DB_NAME", "study_mood_tracker")
 
 _client: MongoClient | None = None
 
+
 def get_client() -> MongoClient:
     """Return a cached MongoDB client instance."""
     global _client  # pylint: disable=global-statement

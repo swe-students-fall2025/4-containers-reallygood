@@ -40,10 +40,15 @@ def main():
 
     for attempt in range(10):
         time.sleep(2)
-        r = requests.get(f"{API_BASE}/api/snapshots/{snapshot_id}", timeout=5,)
+        r = requests.get(
+            f"{API_BASE}/api/snapshots/{snapshot_id}",
+            timeout=5,
+        )
         r.raise_for_status()
         doc = r.json()
-        print(f"[Attempt {attempt+1}] status={doc.get('status')}, processed={doc.get('processed')}")
+        print(
+            f"[Attempt {attempt+1}] status={doc.get('status')}, processed={doc.get('processed')}"
+        )
         print(doc)
 
         if doc.get("status") != "pending":
