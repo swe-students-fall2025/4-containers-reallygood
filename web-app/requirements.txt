@@ -2,6 +2,7 @@ flask
 pymongo
 
 pytest
+pytest-cov
 pytest-flask
 coverage
 

@@ -164,8 +164,13 @@ def test_load_model_downloads_when_missing():
     with patch("mood_analyzer.MongoClient") as mock_client, patch(
         "mood_analyzer.ort.InferenceSession"
     ) as mock_session, patch("os.path.exists", return_value=False), patch.object(
-        MoodAnalyzer, "_download_model"
-    ) as mock_download:
+        MoodAnalyzer,
+        "_download_model",
+    ) as mock_download, patch.object(
+        MoodAnalyzer,
+        "_ensure_cascade_file",
+        return_value="/tmp/cascade.xml",
+    ), patch("cv2.CascadeClassifier"):
         mock_db = MagicMock()
         mock_client.return_value.study_mood_tracker = mock_db
         mock_session.return_value = MagicMock()
