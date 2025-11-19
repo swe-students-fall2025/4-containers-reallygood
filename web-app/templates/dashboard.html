@@ -25,6 +25,23 @@
           <button id="upload-btn">Analyze</button>
         </div>
 
+        <!-- Webcam row -->
+         <div class="webcam-container">
+            <div class="webcam-video-wrap">
+                <video id="webcam-video" autoplay playsinline></video>
+            </div>
+            <div class="webcam-buttons">
+                <button id="start-webcam-btn">Start Camera</button>
+                <button id="capture-btn">Capture & Analyze</button>
+            </div>
+
+            <p class="webcam-help">
+                1. Click <strong>Enable Camera</strong> and allow browser access.<br>
+                2. Click <strong>Capture &amp; Analyze</strong> to take a snapshot.<br>
+                3. Results will appear below after processing.
+            </p>
+         </div>
+
         <div id="preview-container">
           <p id="preview-label" class="preview-label">Preview</p>
           <img id="preview-image" src="" class="preview-img" />
