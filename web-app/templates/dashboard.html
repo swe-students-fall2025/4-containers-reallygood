@@ -33,9 +33,25 @@
         <p id="upload-status" class="status-text"></p>
       </section>
 
+      <!-- Webcam Section -->
+      <section class="card webcam-card">
+        <h2>Use Webcam</h2>
+
+        <div class="webcam-layout">
+          <video id="webcam-video" autoplay playsinline></video>
+          <div class="webcam-controls">
+            <button id="enable-webcam-btn">Enable Camera</button>
+            <button id="capture-btn" disabled>Capture & Analyze</button>
+            <p id="webcam-status" class="status-text"></p>
+          </div>
+        </div>
+        <canvas id="webcam-canvas" class="hidden-canvas"></canvas>
+      </section>
+
       <!-- Current Snapshot Section -->
       <section class="card">
         <h2>Analysis Result</h2>
+        <p id="analysis-mood-text" class="status-text">Mood: —</p>
         <pre id="current-snapshot-json" class="json-box">No snapshot yet.</pre>
       </section>
 

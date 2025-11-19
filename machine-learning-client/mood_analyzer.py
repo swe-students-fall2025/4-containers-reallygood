@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import base64
+import binascii
 import urllib.request
 
 import numpy as np
@@ -66,17 +67,11 @@ class MoodAnalyzer:
         self._load_model()
 
         # Build path to Haar cascade file without using cv2.data
-        cv2_base_dir = os.path.dirname(cv2.__file__)
-        cascade_path = os.path.join(
-            cv2_base_dir,
-            "data",
-            "haarcascades",
-            "haarcascade_frontalface_default.xml",
-        )
+        self.cascade_path = self._ensure_cascade_file()
 
         # Load face detection model
         self.face_cascade = cv2.CascadeClassifier(  # pylint: disable=no-member
-            cascade_path
+            self.cascade_path
         )
 
     def _connect_to_mongodb(self) -> None:
@@ -128,6 +123,34 @@ class MoodAnalyzer:
         logger.info("Downloading model from %s...", model_url)
         urllib.request.urlretrieve(model_url, self.model_path)
         logger.info("Model downloaded successfully")
+
+    def _ensure_cascade_file(self) -> str:
+        """Ensure Haar cascade file exists locally; download if needed."""
+        # Prefer OpenCV packaged path if it exists
+        packaged_dir = getattr(cv2.data, "haarcascades", None)  # type: ignore[attr-defined]
+        if packaged_dir:
+            packaged_path = os.path.join(packaged_dir, "haarcascade_frontalface_default.xml")
+            if os.path.exists(packaged_path):
+                return packaged_path
+
+        cascades_dir = os.path.join(os.path.dirname(self.model_path), "cascades")
+        os.makedirs(cascades_dir, exist_ok=True)
+        cascade_path = os.path.join(cascades_dir, "haarcascade_frontalface_default.xml")
+
+        if not os.path.exists(cascade_path):
+            logger.info("Cascade file not found. Downloading Haar cascade...")
+            self._download_cascade(cascade_path)
+
+        return cascade_path
+
+    def _download_cascade(self, destination: str) -> None:
+        """Download OpenCV Haar cascade for face detection."""
+        cascade_url = (
+            "https://github.com/opencv/opencv/raw/4.x/data/haarcascades/"
+            "haarcascade_frontalface_default.xml"
+        )
+        urllib.request.urlretrieve(cascade_url, destination)
+        logger.info("Cascade saved to %s", destination)
 
     def preprocess_face(self, face_img: np.ndarray) -> np.ndarray:
         """
@@ -202,8 +225,15 @@ class MoodAnalyzer:
             {input_name: input_data},
         )
 
-        # Get probabilities
-        probabilities = result[0][0]
+        # Get logits and convert to probabilities via softmax for readability
+        logits = result[0][0]
+        max_logit = np.max(logits)
+        exp_logits = np.exp(logits - max_logit)
+        sum_exp = np.sum(exp_logits)
+        if sum_exp == 0:
+            probabilities = np.zeros_like(logits)
+        else:
+            probabilities = exp_logits / sum_exp
 
         # Create emotion dictionary
         emotion_dict = {
@@ -241,8 +271,17 @@ class MoodAnalyzer:
     # ---------- helper methods for snapshot processing ----------
 
     def _decode_image(self, image_data: str) -> Optional[np.ndarray]:
-        """Decode base64 image string to OpenCV BGR image."""
-        img_bytes = base64.b64decode(image_data.split(",")[1])
+        """Decode base64 image string (with or without data URL prefix)."""
+        if "," in image_data:
+            payload = image_data.split(",", 1)[1]
+        else:
+            payload = image_data
+
+        try:
+            img_bytes = base64.b64decode(payload)
+        except (ValueError, binascii.Error):
+            return None
+
         nparr = np.frombuffer(img_bytes, np.uint8)
         image = cv2.imdecode(  # pylint: disable=no-member
             nparr,
