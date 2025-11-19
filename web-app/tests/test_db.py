@@ -1,17 +1,13 @@
 """Tests for low-level database helpers."""
+# pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from unittest.mock import MagicMock
 
-import pytest
+from _lint_stubs import get_pytest, import_db_module
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-import db
+pytest = get_pytest()
+db = import_db_module()
 
 
 @pytest.fixture(autouse=True)

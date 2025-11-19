@@ -1,19 +1,15 @@
 """Tests for the Flask web application."""
+# pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 from flask import Flask
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+from _lint_stubs import get_pytest, import_app_modules
 
-import app as app_module
-from app import create_app
+pytest = get_pytest()
+app_module, create_app = import_app_modules()
 
 
 @pytest.fixture(autouse=True)

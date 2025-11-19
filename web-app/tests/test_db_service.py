@@ -1,19 +1,19 @@
 """Unit tests for db_service helper functions."""
+# pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 
-import sys
 from datetime import datetime
-from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 from bson import ObjectId
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+from _lint_stubs import (
+    get_pytest,
+    import_db_service_module,
+)
 
-import db_service
+pytest = get_pytest()
+db_service = import_db_service_module()
 
 
 @pytest.fixture(name="fake_collection")
@@ -21,6 +21,7 @@ def fake_collection_fixture(monkeypatch):
     """Provide a fake Mongo collection and patch get_collection."""
 
     class FakeCollection:
+        """In-memory stub used by tests."""
         def __init__(self):
             self.inserted = []
             self.next_result = None
