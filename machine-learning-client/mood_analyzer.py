@@ -17,6 +17,8 @@ import cv2
 import onnxruntime as ort
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from dotenv import load_dotenv
+
 
 # Configure logging
 logging.basicConfig(
@@ -24,6 +26,8 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 
 class MoodAnalyzer:
