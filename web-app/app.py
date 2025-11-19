@@ -125,7 +125,7 @@ def create_app() -> Flask:
 def main():
     app = create_app()
     host = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
-    port = int(os.getenv("FLASK_RUN_PORT", "5000"))
+    port = int(os.getenv("FLASK_RUN_PORT", "5001"))
 
     logger.info("Starting server on %s:%s", host, port)
     app.run(host=host, port=port, debug=True)

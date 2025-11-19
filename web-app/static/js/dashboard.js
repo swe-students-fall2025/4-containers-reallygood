@@ -1,3 +1,24 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("image-input");
+  const previewImage = document.getElementById("preview-image");
+  const previewLabel = document.getElementById("preview-label");
+
+  input.addEventListener("change", () => {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewImage.style.display = "block";
+        previewLabel.style.display = "block";
+      };
+
+      reader.readAsDataURL(file);
+    }
+  });
+});
+
 // Convert file → Base64 string
 async function fileToBase64(file) {
   return new Promise((resolve, reject) => {

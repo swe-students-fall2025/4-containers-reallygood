@@ -72,3 +72,14 @@ pre {
   border-radius: 6px;
   overflow-x: auto;
 }
+
+
+#preview-container {
+  margin-top: 1rem;
+}
+
+#preview-image {
+  border: 2px solid #ddd;
+  padding: 4px;
+  border-radius: 8px;
+}
