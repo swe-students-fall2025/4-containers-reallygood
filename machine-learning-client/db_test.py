@@ -1,4 +1,5 @@
 """Manual test script for verifying the ML client's MongoDB connection."""
+
 # machine-learning-client/db_manual_check.py
 from datetime import datetime
 from db import get_collection
@@ -21,7 +22,6 @@ def main():
     print("Latest docs in mood_snapshots:")
     for d in snapshots.find().sort("created_at", -1).limit(5):
         print(d)
-
 
 
 if __name__ == "__main__":

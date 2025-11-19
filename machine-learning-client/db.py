@@ -1,4 +1,5 @@
 """Database connection helpers for the machine-learning client."""
+
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -17,7 +18,9 @@ def get_client() -> MongoClient:
 
     if _client is None:
         if not MONGO_URI:
-            raise RuntimeError("MONGO_URI is not set. Please configure it in your .env file.")
+            raise RuntimeError(
+                "MONGO_URI is not set. Please configure it in your .env file."
+            )
         _client = MongoClient(MONGO_URI)
 
     return _client

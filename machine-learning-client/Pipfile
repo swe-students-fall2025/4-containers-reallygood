@@ -13,9 +13,9 @@ python-dotenv = "*"
 
 [dev-packages]
 pylint = "*"
-black = "*"
 pytest = "*"
 pytest-cov = "*"
+black = "*"
 
 [requires]
 python_version = ">=3.9,<3.11"
