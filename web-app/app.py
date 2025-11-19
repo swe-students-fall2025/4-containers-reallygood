@@ -16,6 +16,9 @@ from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.errors import ConnectionFailure
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Configure logging (same pattern as mood_analyzer.py)
 logging.basicConfig(
     level=logging.INFO,
