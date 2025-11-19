@@ -1,85 +1,148 @@
-/* General Styling */
+/* ========= GLOBAL RESET ========== */
 body {
-  font-family: system-ui, sans-serif;
-  background-color: #fafafa;
   margin: 0;
-  padding: 2rem;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-h1 {
-  margin-bottom: 0.3rem;
-}
-
-.card {
-  background: white;
-  padding: 1.3rem;
-  margin-bottom: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-button {
-  margin-top: 0.5rem;
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: none;
-  background-color: #0066ff;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0055d4;
-}
-
-#upload-status {
-  margin-top: 0.8rem;
+  font-family: "Inter", system-ui, sans-serif;
+  background: pink;
   color: #333;
 }
 
-/* Table */
-table {
-  border-collapse: collapse;
-  width: 100%;
+/* ========= NAVBAR ========== */
+.navbar {
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  padding: 1.5rem 2rem;
+  color: #ffffff;
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.navbar-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.navbar-sub {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-top: 0.3rem;
+}
+
+/* ========= LAYOUT ========== */
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* ========= CARD COMPONENTS ========== */
+.card {
+  background: #ffffff;
+  padding: 1.7rem;
+  margin-bottom: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+  transition: transform 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* ========= BUTTONS ========== */
+button {
+  padding: 0.7rem 1.4rem;
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ========= UPLOAD SECTION ========== */
+.upload-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+input[type="file"] {
+  padding: 0.4rem;
+}
+
+/* ========= IMAGE PREVIEW ========== */
+.preview-label {
   margin-top: 1rem;
+  font-weight: 600;
+  color: #374151;
 }
 
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
+.preview-img {
+  max-width: 300px;
+  border-radius: 12px;
+  border: 3px solid #c7d2fe;
+  display: none;
+  margin-top: 0.5rem;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
 }
 
-th {
-  background-color: #eee;
+/* ========= STATUS TEXT ========== */
+.status-text {
+  margin-top: 0.8rem;
+  color: #444;
 }
 
-td {
-  background-color: #fff;
-}
-
-pre {
-  background: #f7f7f7;
+/* ========= JSON BOX ========== */
+.json-box {
+  background: #eef2ff;
   padding: 1rem;
-  border-radius: 6px;
-  overflow-x: auto;
+  border-radius: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+  font-size: 14px;
+  border: 2px solid #c7d2fe;
 }
 
-
-#preview-container {
+/* ========= TABLE STYLING ========== */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 1rem;
+  font-size: 15px;
 }
 
-#preview-image {
-  border: 2px solid #ddd;
-  padding: 4px;
-  border-radius: 8px;
+.styled-table th {
+  background: #e0e7ff;
+  padding: 0.8rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  border-bottom: 2px solid #c7d2fe;
+}
+
+.styled-table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.styled-table tr:hover {
+  background: #f3f4ff;
+}
+
+/* Highlight status colors */
+td.status-pending {
+  color: #b45309;
+  font-weight: 600;
+}
+
+td.status-done {
+  color: #059669;
+  font-weight: 600;
 }

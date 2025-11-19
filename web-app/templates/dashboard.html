@@ -4,58 +4,61 @@
     <meta charset="utf-8" />
     <title>Mood Analyzer Dashboard</title>
 
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
   </head>
 
   <body>
-    <header>
-      <h1>Mood Analyzer Dashboard</h1>
-      <p>View real-time mood analysis from the ML client.</p>
-    </header>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="navbar-title">Mood Analyzer Dashboard</div>
+      <div class="navbar-sub">AI-Powered Emotion Detection</div>
+    </nav>
 
-    <!-- Upload Section -->
-    <section class="card">
-      <h2>Upload an Image</h2>
+    <main>
+      <!-- Upload Section -->
+      <section class="card upload-card">
+        <h2>Upload an Image</h2>
 
-      <input type="file" id="image-input" accept="image/*" />
-      <button id="upload-btn">Analyze Image</button>
+        <div class="upload-controls">
+          <input type="file" id="image-input" accept="image/*" />
+          <button id="upload-btn">Analyze</button>
+        </div>
 
-      <div id="preview-container">
-        <p id="preview-label" style="display: none;">Preview:</p>
-        <img id="preview-image" src="" alt="Preview" style="max-width: 250px; display: none; margin-top: 1rem; border-radius: 6px;"> 
-      </div>
+        <div id="preview-container">
+          <p id="preview-label" class="preview-label">Preview</p>
+          <img id="preview-image" src="" class="preview-img" />
+        </div>
 
-      <p id="upload-status"></p>
-    </section>
+        <p id="upload-status" class="status-text"></p>
+      </section>
 
-    <!-- Current Snapshot Section -->
-    <section class="card">
-      <h2>Current Snapshot</h2>
-      <pre id="current-snapshot-json">No snapshot yet.</pre>
-    </section>
+      <!-- Current Snapshot Section -->
+      <section class="card">
+        <h2>Analysis Result</h2>
+        <pre id="current-snapshot-json" class="json-box">No snapshot yet.</pre>
+      </section>
 
-    <!-- Recent Snapshots -->
-    <section class="card">
-      <h2>Recent Snapshots</h2>
+      <!-- Recent Snapshots -->
+      <section class="card">
+        <h2>Recent Snapshots</h2>
 
-      <table id="snapshot-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Status</th>
-            <th>Mood</th>
-            <th>Face?</th>
-            <th>Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Filled dynamically -->
-        </tbody>
-      </table>
-    </section>
+        <table id="snapshot-table" class="styled-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Mood</th>
+              <th>Face?</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled dynamically -->
+          </tbody>
+        </table>
+      </section>
+    </main>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
   </body>
