@@ -1,4 +1,5 @@
 """Tests for the Flask web application."""
+
 # pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 

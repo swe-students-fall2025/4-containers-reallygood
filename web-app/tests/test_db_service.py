@@ -1,4 +1,5 @@
 """Unit tests for db_service helper functions."""
+
 # pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ def fake_collection_fixture(monkeypatch):
 
     class FakeCollection:
         """In-memory stub used by tests."""
+
         def __init__(self):
             self.inserted = []
             self.next_result = None

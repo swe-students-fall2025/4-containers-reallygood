@@ -1,4 +1,5 @@
 """Tests for low-level database helpers."""
+
 # pylint: disable=missing-function-docstring,too-few-public-methods,unnecessary-lambda
 from __future__ import annotations
 

@@ -1,4 +1,5 @@
 """Helpers to keep pylint happy when optional deps are missing."""
+
 from __future__ import annotations
 
 import sys

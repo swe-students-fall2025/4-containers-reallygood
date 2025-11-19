@@ -1,4 +1,5 @@
 """Shared pytest configuration for the web app tests."""
+
 from __future__ import annotations
 
 import sys

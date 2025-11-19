@@ -1,4 +1,5 @@
 """Service layer helpers for working with mood snapshot documents."""
+
 # web-app/db_service.py
 from datetime import datetime
 from typing import Any, Dict, Optional

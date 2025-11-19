@@ -15,8 +15,8 @@ tomli = "*"
 [dev-packages]
 pytest = "*"
 pytest-flask = "*"
-pytest-cov = "*"
 typing_extensions = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"
