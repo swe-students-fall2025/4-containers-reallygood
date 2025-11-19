@@ -4,18 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymongo = "*"
 opencv-python-headless = "*"
 onnxruntime = "*"
 numpy = "*"
 pillow = "*"
+pymongo = "*"
 python-dotenv = "*"
 
 [dev-packages]
 pylint = "*"
-black = "*"
 pytest = "*"
 pytest-cov = "*"
+black = "*"
 
 [requires]
 python_version = ">=3.9,<3.11"
