@@ -1,3 +1,4 @@
+"""Database connection helpers for the machine-learning client."""
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ _client: MongoClient | None = None
 
 
 def get_client() -> MongoClient:
+    """Return a cached MongoDB client instance."""
     global _client
 
     if _client is None:
@@ -22,8 +24,10 @@ def get_client() -> MongoClient:
 
 
 def get_db():
+    """Return the default MongoDB database object."""
     return get_client()[MONGO_DB_NAME]
 
 
 def get_collection(name: str):
+    """Return a collection object from the default database."""
     return get_db()[name]

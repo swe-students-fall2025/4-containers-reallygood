@@ -1,9 +1,11 @@
+"""Manual test script for verifying the ML client's MongoDB connection."""
 # machine-learning-client/db_manual_check.py
 from datetime import datetime
 from db import get_collection
 
 
 def main():
+    """Insert a test document and print recent documents from the collection."""
     snapshots = get_collection("mood_snapshots")
 
     doc = {
