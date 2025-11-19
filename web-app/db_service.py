@@ -1,3 +1,4 @@
+"""Service layer helpers for working with mood snapshot documents."""
 # web-app/db_service.py
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -37,7 +38,7 @@ def get_snapshot_by_id_raw(snapshot_id: str) -> Optional[Dict[str, Any]]:
 
     try:
         oid = ObjectId(snapshot_id)
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         return None
 
     doc = col.find_one({"_id": oid})
