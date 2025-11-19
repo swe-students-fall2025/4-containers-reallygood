@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mood Analyzer Dashboard</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+
+  <body>
+    <header>
+      <h1>Mood Analyzer Dashboard</h1>
+      <p>View real-time mood analysis from the ML client.</p>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="card">
+      <h2>Upload an Image</h2>
+
+      <input type="file" id="image-input" accept="image/*" />
+      <button id="upload-btn">Analyze Image</button>
+
+      <p id="upload-status"></p>
+    </section>
+
+    <!-- Current Snapshot Section -->
+    <section class="card">
+      <h2>Current Snapshot</h2>
+      <pre id="current-snapshot-json">No snapshot yet.</pre>
+    </section>
+
+    <!-- Recent Snapshots -->
+    <section class="card">
+      <h2>Recent Snapshots</h2>
+
+      <table id="snapshot-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Mood</th>
+            <th>Face?</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled dynamically -->
+        </tbody>
+      </table>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </body>
+</html>
