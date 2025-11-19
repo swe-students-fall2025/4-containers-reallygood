@@ -170,7 +170,9 @@ def test_load_model_downloads_when_missing():
         MoodAnalyzer,
         "_ensure_cascade_file",
         return_value="/tmp/cascade.xml",
-    ), patch("cv2.CascadeClassifier"):
+    ), patch(
+        "cv2.CascadeClassifier"
+    ):
         mock_db = MagicMock()
         mock_client.return_value.study_mood_tracker = mock_db
         mock_session.return_value = MagicMock()
