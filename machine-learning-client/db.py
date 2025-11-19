@@ -13,7 +13,7 @@ _client: MongoClient | None = None
 
 def get_client() -> MongoClient:
     """Return a cached MongoDB client instance."""
-    global _client
+    global _client  # pylint: disable=global-statement
 
     if _client is None:
         if not MONGO_URI:
