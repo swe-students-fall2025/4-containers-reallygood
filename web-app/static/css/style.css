@@ -78,6 +78,41 @@ input[type="file"] {
   padding: 0.4rem;
 }
 
+.webcam-container {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.webcam-video-wrap {
+  background: #111827;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 320px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
+#webcam-video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.webcam-buttons {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.webcam-help {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+
+
 /* ========= IMAGE PREVIEW ========== */
 .preview-label {
   margin-top: 1rem;

@@ -1,3 +1,122 @@
+let currentStream = null;
+
+async function startWebcam() {
+  const video = document.getElementById("webcam-video");
+  const statusEl = document.getElementById("upload-status");
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusEl.textContent = "Camera not supported in this browser.";
+    return;
+  }
+
+  try {
+    // Stop any existing stream
+    if (currentStream) {
+      currentStream.getTracks().forEach((track) => track.stop());
+      currentStream = null;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    currentStream = stream;
+    video.srcObject = stream;
+    statusEl.textContent = "Camera started. Click 'Capture & Analyze'.";
+  } catch (err) {
+    console.error("Error accessing webcam:", err);
+    statusEl.textContent = "Could not access camera (permission denied?).";
+  }
+}
+
+async function captureFromWebcam() {
+  const video = document.getElementById("webcam-video");
+  const statusEl = document.getElementById("upload-status");
+  const previewImage = document.getElementById("preview-image");
+  const previewLabel = document.getElementById("preview-label");
+
+  if (!video.srcObject) {
+    statusEl.textContent = "Camera is not started.";
+    return;
+  }
+
+  // Create a temporary canvas to grab the frame
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Convert to base64 JPEG
+  const dataUrl = canvas.toDataURL("image/jpeg");
+  const base64 = dataUrl.split(",")[1];
+
+  // Show preview from the captured frame
+  previewImage.src = dataUrl;
+  previewImage.style.display = "block";
+  previewLabel.style.display = "block";
+
+  statusEl.textContent = "Uploading captured frame…";
+
+  // Reuse your existing upload API call
+  const resp = await fetch("/api/snapshots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image_data: base64 }),
+  });
+
+  if (!resp.ok) {
+    statusEl.textContent = "Upload failed.";
+    return;
+  }
+
+  const data = await resp.json();
+  statusEl.textContent = `Snapshot created: ${data.id}`;
+
+  const snapshotJsonEl = document.getElementById("current-snapshot-json");
+  snapshotJsonEl.textContent = JSON.stringify(data, null, 2);
+
+  // Start polling until ML client finishes processing
+  pollSnapshotStatus(data.id);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("image-input");
+  const previewImage = document.getElementById("preview-image");
+  const previewLabel = document.getElementById("preview-label");
+
+  // File input preview
+  input.addEventListener("change", () => {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewImage.style.display = "block";
+        previewLabel.style.display = "block";
+      };
+
+      reader.readAsDataURL(input.files[0]);
+    }
+  });
+
+  // Existing upload button (file)
+  document
+    .getElementById("upload-btn")
+    .addEventListener("click", uploadImage);
+
+  // New webcam buttons
+  document
+    .getElementById("start-webcam-btn")
+    .addEventListener("click", startWebcam);
+
+  document
+    .getElementById("capture-btn")
+    .addEventListener("click", captureFromWebcam);
+
+  // Load recent snapshots on page load
+  loadRecentSnapshots();
+});
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("image-input");
   const previewImage = document.getElementById("preview-image");
