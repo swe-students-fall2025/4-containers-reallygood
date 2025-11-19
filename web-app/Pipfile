@@ -10,7 +10,6 @@ flask = "*"
 pymongo = "*"
 python-dotenv = "*"
 requests = "*"
-tomli = "*"
 
 [dev-packages]
 pytest = "*"
