@@ -129,7 +129,9 @@ class MoodAnalyzer:
         # Prefer OpenCV packaged path if it exists
         packaged_dir = getattr(cv2.data, "haarcascades", None)  # type: ignore[attr-defined]
         if packaged_dir:
-            packaged_path = os.path.join(packaged_dir, "haarcascade_frontalface_default.xml")
+            packaged_path = os.path.join(
+                packaged_dir, "haarcascade_frontalface_default.xml"
+            )
             if os.path.exists(packaged_path):
                 return packaged_path
 
