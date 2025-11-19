@@ -176,8 +176,7 @@ class MoodAnalyzer:
         else:
             face_gray = face_resized
 
-        # Normalize pixel values
-        face_normalized = face_gray.astype(np.float32) / 255.0
+        face_normalized = face_gray.astype(np.float32)
 
         # Add batch and channel dimensions
         face_input = np.expand_dims(np.expand_dims(face_normalized, axis=0), axis=0)
@@ -246,29 +245,13 @@ class MoodAnalyzer:
 
     def categorize_mood(self, emotion_dict: Dict[str, float]) -> str:
         """
-        Categorize overall mood based on emotions.
-
-        Args:
-            emotion_dict: Dictionary of emotion probabilities.
-
-        Returns:
-            Mood category: 'happy', 'neutral', 'unhappy', 'focused', or 'unknown'.
+        Return the dominant (highest-probability) emotion.
         """
         if not emotion_dict:
             return "unknown"
 
-        # Get dominant emotion
-        dominant_emotion = max(emotion_dict, key=emotion_dict.get)
-
-        # Map emotions to mood categories
-        if dominant_emotion in ["happiness"]:
-            return "happy"
-        if dominant_emotion in ["sadness", "anger", "disgust", "fear"]:
-            return "unhappy"
-        if dominant_emotion in ["surprise"]:
-            return "focused"
-        # neutral
-        return "neutral"
+        # Return the key with the highest probability
+        return max(emotion_dict, key=emotion_dict.get)
 
     # ---------- helper methods for snapshot processing ----------
 

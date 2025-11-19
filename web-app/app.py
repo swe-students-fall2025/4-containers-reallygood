@@ -122,13 +122,15 @@ def create_app() -> Flask:
 # -----------------------------
 # Main Entry Point
 # -----------------------------
-def main():
+def main() -> None:
+    """Start the Flask development server."""
     app = create_app()
     host = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
     port = int(os.getenv("FLASK_RUN_PORT", "5001"))
 
     logger.info("Starting server on %s:%s", host, port)
     app.run(host=host, port=port, debug=True)
+
 
 
 if __name__ == "__main__":
