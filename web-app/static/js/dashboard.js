@@ -1,7 +1,12 @@
+let webcamStream = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("image-input");
   const previewImage = document.getElementById("preview-image");
   const previewLabel = document.getElementById("preview-label");
+  const enableWebcamBtn = document.getElementById("enable-webcam-btn");
+  const captureBtn = document.getElementById("capture-btn");
+  const webcamStatus = document.getElementById("webcam-status");
 
   input.addEventListener("change", () => {
     if (input.files && input.files[0]) {
@@ -16,6 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       reader.readAsDataURL(file);
     }
+  });
+
+  enableWebcamBtn.addEventListener("click", () => {
+    startWebcam(enableWebcamBtn, captureBtn, webcamStatus);
+  });
+
+  captureBtn.addEventListener("click", () => {
+    captureFromWebcam(webcamStatus);
   });
 });
 
@@ -46,12 +59,14 @@ async function uploadImage() {
     return;
   }
 
-  // Read file → base64
+  // Read file → base64 and send to server
   const file = input.files[0];
   statusEl.textContent = "Converting image…";
   const base64 = await fileToBase64(file);
+  await sendImageToServer(base64, statusEl, snapshotJsonEl);
+}
 
-  // Send to server
+async function sendImageToServer(base64, statusEl, snapshotJsonEl) {
   statusEl.textContent = "Uploading to server…";
   const resp = await fetch("/api/snapshots", {
     method: "POST",
@@ -67,6 +82,7 @@ async function uploadImage() {
   const data = await resp.json();
   statusEl.textContent = `Snapshot created: ${data.id}`;
   snapshotJsonEl.textContent = JSON.stringify(data, null, 2);
+  updateAnalysisSummary({ id: data.id, status: "pending" });
 
   // Start polling until ML client finishes processing
   pollSnapshotStatus(data.id);
@@ -86,6 +102,7 @@ async function pollSnapshotStatus(id) {
 
     const view = await resp.json();
     snapshotJsonEl.textContent = JSON.stringify(view, null, 2);
+    updateAnalysisSummary(view);
 
     // If done → stop polling and refresh recent table
     if (view.status === "done" || view.status === "error") {
@@ -127,4 +144,63 @@ async function loadRecentSnapshots() {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("upload-btn").addEventListener("click", uploadImage);
   loadRecentSnapshots();
+  updateAnalysisSummary();
 });
+
+async function startWebcam(enableBtn, captureBtn, statusEl) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusEl.textContent = "Webcam not supported in this browser.";
+    return;
+  }
+
+  try {
+    webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const videoElement = document.getElementById("webcam-video");
+    videoElement.srcObject = webcamStream;
+    captureBtn.disabled = false;
+    enableBtn.disabled = true;
+    statusEl.textContent = "Camera ready.";
+  } catch (err) {
+    statusEl.textContent = "Unable to access webcam.";
+    console.error("Webcam error", err);
+  }
+}
+
+async function captureFromWebcam(statusEl) {
+  if (!webcamStream) {
+    statusEl.textContent = "Enable the webcam first.";
+    return;
+  }
+
+  const videoElement = document.getElementById("webcam-video");
+  const canvas = document.getElementById("webcam-canvas");
+  const snapshotJsonEl = document.getElementById("current-snapshot-json");
+
+  const width = videoElement.videoWidth || 640;
+  const height = videoElement.videoHeight || 480;
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(videoElement, 0, 0, width, height);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+  const base64 = dataUrl.split(",")[1];
+
+  await sendImageToServer(base64, statusEl, snapshotJsonEl);
+}
+
+function updateAnalysisSummary(view) {
+  const moodTextEl = document.getElementById("analysis-mood-text");
+  const snapshotJsonEl = document.getElementById("current-snapshot-json");
+
+  if (!view || Object.keys(view).length === 0) {
+    moodTextEl.textContent = "Mood: —";
+    snapshotJsonEl.textContent = "No snapshot yet.";
+    return;
+  }
+
+  const mood = view.mood || (view.status === "pending" ? "Pending" : "Unknown");
+  moodTextEl.textContent = `Mood: ${mood}`;
+  snapshotJsonEl.textContent = JSON.stringify(view, null, 2);
+}
