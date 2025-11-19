@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mood Analyzer Dashboard</title>
+
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  </head>
+
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="navbar-title">Mood Analyzer Dashboard</div>
+      <div class="navbar-sub">AI-Powered Emotion Detection</div>
+    </nav>
+
+    <main>
+      <!-- Upload Section -->
+      <section class="card upload-card">
+        <h2>Upload an Image</h2>
+
+        <div class="upload-controls">
+          <input type="file" id="image-input" accept="image/*" />
+          <button id="upload-btn">Analyze</button>
+        </div>
+
+        <div id="preview-container">
+          <p id="preview-label" class="preview-label">Preview</p>
+          <img id="preview-image" src="" class="preview-img" />
+        </div>
+
+        <p id="upload-status" class="status-text"></p>
+      </section>
+
+      <!-- Current Snapshot Section -->
+      <section class="card">
+        <h2>Analysis Result</h2>
+        <pre id="current-snapshot-json" class="json-box">No snapshot yet.</pre>
+      </section>
+
+      <!-- Recent Snapshots -->
+      <section class="card">
+        <h2>Recent Snapshots</h2>
+
+        <table id="snapshot-table" class="styled-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Mood</th>
+              <th>Face?</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled dynamically -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </body>
+</html>
