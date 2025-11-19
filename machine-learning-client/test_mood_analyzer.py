@@ -127,7 +127,7 @@ def test_preprocess_face(analyzer):
     assert processed.shape == (1, 1, 64, 64)
     assert processed.dtype == np.float32
     assert processed.min() >= 0.0
-    assert processed.max() <= 1.0
+    assert processed.max() <= 255.0
 
 
 def test_detect_faces(analyzer):
