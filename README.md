@@ -7,6 +7,7 @@ An AI-powered containerized application that tracks and analyzes students' emoti
 ## Team Members
 
 - **Leo Qian** - [Leo Qian](https://github.com/Leo-codingMaster)
+- **Gavin Guo** - [Gavin Guo](https://github.com/GavinGuoSZ)
 
 ## Project Overview
 
