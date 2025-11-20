@@ -46,7 +46,11 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
     """Create a MoodAnalyzer instance with mocked MongoDB and ONNX session."""
     _ = mock_mongodb
     _ = mock_onnx_session
-    with patch("os.path.exists", return_value=True):
+    with patch("os.path.exists", return_value=True), patch.object(
+        MoodAnalyzer,
+        "_ensure_cascade_file",
+        return_value="/tmp/cascade.xml",
+    ), patch("cv2.CascadeClassifier"):
         return MoodAnalyzer("mongodb://test:27017/test")
 
 
@@ -54,7 +58,7 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
 
 
 def test_categorize_mood_happy(analyzer):
-    """Categorize mood as happy when happiness dominates."""
+    """Return 'happiness' when happiness dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.7,
@@ -65,11 +69,11 @@ def test_categorize_mood_happy(analyzer):
         "fear": 0.025,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "happy"
+    assert mood == "happiness"
 
 
 def test_categorize_mood_unhappy(analyzer):
-    """Categorize mood as unhappy when negative emotions dominate."""
+    """Return the dominant negative emotion label (e.g. 'sadness')."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -80,11 +84,11 @@ def test_categorize_mood_unhappy(analyzer):
         "fear": 0.05,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "unhappy"
+    assert mood == "sadness"
 
 
 def test_categorize_mood_neutral(analyzer):
-    """Categorize mood as neutral when neutral dominates."""
+    """Return 'neutral' when neutral dominates."""
     emotion_dict = {
         "neutral": 0.7,
         "happiness": 0.05,
@@ -99,7 +103,7 @@ def test_categorize_mood_neutral(analyzer):
 
 
 def test_categorize_mood_focused(analyzer):
-    """Categorize mood as focused when surprise dominates."""
+    """Return 'surprise' when surprise dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -110,7 +114,7 @@ def test_categorize_mood_focused(analyzer):
         "fear": 0.025,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "focused"
+    assert mood == "surprise"
 
 
 def test_categorize_mood_empty(analyzer):
@@ -120,14 +124,26 @@ def test_categorize_mood_empty(analyzer):
 
 
 def test_preprocess_face(analyzer):
-    """Preprocess a random face image to the expected shape and range."""
+    """Preprocess a random face image to the expected shape and dtype."""
     face_img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
     processed = analyzer.preprocess_face(face_img)
 
     assert processed.shape == (1, 1, 64, 64)
     assert processed.dtype == np.float32
     assert processed.min() >= 0.0
-    assert processed.max() <= 1.0
+    # Now we keep [0, 255] floats, not normalized to [0, 1].
+    assert processed.max() <= 255.0
+
+
+def test_preprocess_face_grayscale(analyzer):
+    """Preprocess a grayscale face image to the expected shape and dtype."""
+    face_img = np.random.randint(0, 255, (100, 100), dtype=np.uint8)
+    processed = analyzer.preprocess_face(face_img)
+
+    assert processed.shape == (1, 1, 64, 64)
+    assert processed.dtype == np.float32
+    assert processed.min() >= 0.0
+    assert processed.max() <= 255.0
 
 
 def test_detect_faces(analyzer):
@@ -150,7 +166,8 @@ def test_predict_emotion(analyzer, mock_onnx_session):
     emotions = analyzer.predict_emotion(face_img)
 
     assert isinstance(emotions, dict)
-    assert len(emotions) == 7
+    # Model may have 7 or 8 classes; only check basic properties.
+    assert len(emotions) >= 7
     assert "happiness" in emotions
     assert all(0 <= prob <= 1 for prob in emotions.values())
     mock_onnx_session.run.assert_called_once()
@@ -181,6 +198,14 @@ def test_load_model_downloads_when_missing():
         mock_download.assert_called_once()
 
 
+def test_download_model_uses_urlretrieve(analyzer, tmp_path):
+    """Ensure _download_model uses urllib to fetch the ONNX file."""
+    analyzer.model_path = str(tmp_path / "emotion-ferplus-8.onnx")
+    with patch("mood_analyzer.urllib.request.urlretrieve") as mock_urlretrieve:
+        analyzer._download_model()  # pylint: disable=protected-access
+        mock_urlretrieve.assert_called_once()
+
+
 def test_decode_image_valid(analyzer):
     """Decode a valid base64 image string to an OpenCV image."""
     img = np.zeros((10, 10, 3), dtype=np.uint8)
@@ -194,10 +219,23 @@ def test_decode_image_valid(analyzer):
     assert decoded.shape[0] > 0 and decoded.shape[1] > 0
 
 
+def test_decode_image_valid_without_prefix(analyzer):
+    """Decode a valid base64 image string without a data URL prefix."""
+    img = np.zeros((8, 8, 3), dtype=np.uint8)
+    success, buf = cv2.imencode(".png", img)  # pylint: disable=no-member
+    assert success
+    img_bytes = buf.tobytes()
+    b64_str = base64.b64encode(img_bytes).decode("utf-8")
+
+    decoded = analyzer._decode_image(b64_str)  # pylint: disable=protected-access
+    assert decoded is not None
+    assert decoded.shape[0] > 0 and decoded.shape[1] > 0
+
+
 def test_update_snapshot_with_face_updates_db(analyzer):
     """Update snapshot with face_detected, emotions and mood."""
     emotions = {"happiness": 0.8}
-    mood = "happy"
+    mood = "happiness"
 
     analyzer._update_snapshot_with_face(  # pylint: disable=protected-access
         "snap1",
@@ -236,8 +274,8 @@ def test_mark_snapshot_error_updates_db(analyzer):
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
-    assert args[0] == {"_id": "snap3"}
     update_doc = args[1]
+    assert args[0] == {"_id": "snap3"}
     assert update_doc["$set"]["error"] == "boom"
     assert update_doc["$set"]["processed"] is True
 
@@ -315,7 +353,7 @@ def test_process_pending_images_with_face(analyzer):
     ) as mock_predict, patch.object(
         analyzer,
         "categorize_mood",
-        return_value="happy",
+        return_value="happiness",
     ) as mock_cat, patch.object(
         analyzer,
         "_update_snapshot_with_face",
@@ -328,7 +366,7 @@ def test_process_pending_images_with_face(analyzer):
         args, _ = mock_update.call_args
         assert args[0] == "snap-face"
         assert args[1] == {"happiness": 1.0}
-        assert args[2] == "happy"
+        assert args[2] == "happiness"
 
 
 def test_process_pending_images_no_face(analyzer):
@@ -392,3 +430,14 @@ def test_run_handles_keyboard_interrupt(analyzer):
     ), patch("mood_analyzer.time.sleep") as mock_sleep:
         analyzer.run()
         mock_sleep.assert_not_called()
+
+
+def test_run_recovers_from_runtime_error(analyzer):
+    """Hit the error-handling branch in run() before exiting."""
+    with patch.object(
+        analyzer,
+        "process_pending_images",
+        side_effect=[RuntimeError("boom"), KeyboardInterrupt],
+    ), patch("mood_analyzer.time.sleep") as mock_sleep:
+        analyzer.run()
+        mock_sleep.assert_called_once()

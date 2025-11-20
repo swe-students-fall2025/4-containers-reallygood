@@ -34,7 +34,7 @@ load_dotenv()
 class MoodAnalyzer:
     """Analyzes facial expressions to determine mood/emotion."""
 
-    # Emotion labels for the FER+ model
+    # Emotion labels for the FER+ model (8 classes)
     EMOTIONS = [
         "neutral",
         "happiness",
@@ -43,10 +43,13 @@ class MoodAnalyzer:
         "anger",
         "disgust",
         "fear",
+        "contempt",
     ]
 
     def __init__(
-        self, mongodb_uri: str, model_path: str = "models/emotion-ferplus-8.onnx"
+        self,
+        mongodb_uri: str,
+        model_path: str = "models/emotion-ferplus-8.onnx",
     ):
         """
         Initialize the MoodAnalyzer.
@@ -102,7 +105,7 @@ class MoodAnalyzer:
 
     def _load_model(self) -> None:
         """Load the ONNX emotion recognition model."""
-        # Create models directory if it doesn't exist
+        # Create models directory if it does not exist
         os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
 
         # Check if model exists, if not download it
@@ -130,7 +133,8 @@ class MoodAnalyzer:
         packaged_dir = getattr(cv2.data, "haarcascades", None)  # type: ignore[attr-defined]
         if packaged_dir:
             packaged_path = os.path.join(
-                packaged_dir, "haarcascade_frontalface_default.xml"
+                packaged_dir,
+                "haarcascade_frontalface_default.xml",
             )
             if os.path.exists(packaged_path):
                 return packaged_path
@@ -176,10 +180,10 @@ class MoodAnalyzer:
         else:
             face_gray = face_resized
 
-        # Normalize pixel values
-        face_normalized = face_gray.astype(np.float32) / 255.0
+        # Keep pixel values in [0, 255] as float32 (FER+ model expects this range)
+        face_normalized = face_gray.astype(np.float32)
 
-        # Add batch and channel dimensions
+        # Add batch and channel dimensions: (1, 1, 64, 64)
         face_input = np.expand_dims(np.expand_dims(face_normalized, axis=0), axis=0)
 
         return face_input
@@ -227,7 +231,7 @@ class MoodAnalyzer:
             {input_name: input_data},
         )
 
-        # Get logits and convert to probabilities via softmax for readability
+        # Get logits and convert to probabilities via softmax
         logits = result[0][0]
         max_logit = np.max(logits)
         exp_logits = np.exp(logits - max_logit)
@@ -237,7 +241,6 @@ class MoodAnalyzer:
         else:
             probabilities = exp_logits / sum_exp
 
-        # Create emotion dictionary
         emotion_dict = {
             emotion: float(prob) for emotion, prob in zip(self.EMOTIONS, probabilities)
         }
@@ -246,29 +249,18 @@ class MoodAnalyzer:
 
     def categorize_mood(self, emotion_dict: Dict[str, float]) -> str:
         """
-        Categorize overall mood based on emotions.
+        Choose the dominant FER+ emotion label as the mood.
 
         Args:
             emotion_dict: Dictionary of emotion probabilities.
 
         Returns:
-            Mood category: 'happy', 'neutral', 'unhappy', 'focused', or 'unknown'.
+            Dominant emotion label (e.g. 'happiness') or 'unknown' if empty.
         """
         if not emotion_dict:
             return "unknown"
 
-        # Get dominant emotion
-        dominant_emotion = max(emotion_dict, key=emotion_dict.get)
-
-        # Map emotions to mood categories
-        if dominant_emotion in ["happiness"]:
-            return "happy"
-        if dominant_emotion in ["sadness", "anger", "disgust", "fear"]:
-            return "unhappy"
-        if dominant_emotion in ["surprise"]:
-            return "focused"
-        # neutral
-        return "neutral"
+        return max(emotion_dict, key=emotion_dict.get)
 
     # ---------- helper methods for snapshot processing ----------
 
@@ -392,7 +384,7 @@ class MoodAnalyzer:
         while True:
             try:
                 self.process_pending_images()
-                time.sleep(2)  # Check for new images every 2 seconds
+                time.sleep(2)
             except KeyboardInterrupt:
                 logger.info("Shutting down MoodAnalyzer...")
                 break
