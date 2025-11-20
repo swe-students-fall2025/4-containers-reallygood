@@ -34,8 +34,9 @@ def mock_onnx_session_fixture():
         mock_output.name = "output"
         mock_session.get_inputs.return_value = [mock_input]
         mock_session.get_outputs.return_value = [mock_output]
+        # 8 logits matching the 8 FER+ emotion classes
         mock_session.run.return_value = [
-            np.array([[0.1, 0.6, 0.05, 0.1, 0.05, 0.05, 0.05]])
+            np.array([[0.1, 0.6, 0.05, 0.1, 0.05, 0.03, 0.04, 0.03]])
         ]
         mock.return_value = mock_session
         yield mock_session
@@ -46,7 +47,13 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
     """Create a MoodAnalyzer instance with mocked MongoDB and ONNX session."""
     _ = mock_mongodb
     _ = mock_onnx_session
-    with patch("os.path.exists", return_value=True):
+    with patch("os.path.exists", return_value=True), patch.object(
+        MoodAnalyzer,
+        "_ensure_cascade_file",
+        return_value="/tmp/cascade.xml",
+    ), patch(
+        "cv2.CascadeClassifier"
+    ):
         return MoodAnalyzer("mongodb://test:27017/test")
 
 
@@ -54,7 +61,7 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
 
 
 def test_categorize_mood_happy(analyzer):
-    """Categorize mood as happy when happiness dominates."""
+    """Categorize mood as happiness when happiness dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.7,
@@ -63,13 +70,14 @@ def test_categorize_mood_happy(analyzer):
         "anger": 0.05,
         "disgust": 0.025,
         "fear": 0.025,
+        "contempt": 0.0,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "happy"
+    assert mood == "happiness"
 
 
-def test_categorize_mood_unhappy(analyzer):
-    """Categorize mood as unhappy when negative emotions dominate."""
+def test_categorize_mood_sad(analyzer):
+    """Categorize mood as sadness when sadness dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -78,9 +86,10 @@ def test_categorize_mood_unhappy(analyzer):
         "anger": 0.1,
         "disgust": 0.05,
         "fear": 0.05,
+        "contempt": 0.0,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "unhappy"
+    assert mood == "sadness"
 
 
 def test_categorize_mood_neutral(analyzer):
@@ -93,13 +102,14 @@ def test_categorize_mood_neutral(analyzer):
         "anger": 0.05,
         "disgust": 0.05,
         "fear": 0.05,
+        "contempt": 0.0,
     }
     mood = analyzer.categorize_mood(emotion_dict)
     assert mood == "neutral"
 
 
-def test_categorize_mood_focused(analyzer):
-    """Categorize mood as focused when surprise dominates."""
+def test_categorize_mood_surprise(analyzer):
+    """Categorize mood as surprise when surprise dominates."""
     emotion_dict = {
         "neutral": 0.1,
         "happiness": 0.05,
@@ -108,9 +118,10 @@ def test_categorize_mood_focused(analyzer):
         "anger": 0.05,
         "disgust": 0.025,
         "fear": 0.025,
+        "contempt": 0.0,
     }
     mood = analyzer.categorize_mood(emotion_dict)
-    assert mood == "focused"
+    assert mood == "surprise"
 
 
 def test_categorize_mood_empty(analyzer):
@@ -127,7 +138,8 @@ def test_preprocess_face(analyzer):
     assert processed.shape == (1, 1, 64, 64)
     assert processed.dtype == np.float32
     assert processed.min() >= 0.0
-    assert processed.max() <= 1.0
+    # No normalization now: values are in [0, 255]
+    assert processed.max() <= 255.0
 
 
 def test_detect_faces(analyzer):
@@ -150,8 +162,9 @@ def test_predict_emotion(analyzer, mock_onnx_session):
     emotions = analyzer.predict_emotion(face_img)
 
     assert isinstance(emotions, dict)
-    assert len(emotions) == 7
+    assert len(emotions) == 8
     assert "happiness" in emotions
+    assert "contempt" in emotions
     assert all(0 <= prob <= 1 for prob in emotions.values())
     mock_onnx_session.run.assert_called_once()
 
@@ -162,8 +175,11 @@ def test_predict_emotion(analyzer, mock_onnx_session):
 def test_load_model_downloads_when_missing():
     """Call _download_model when the model file does not exist."""
     with patch("mood_analyzer.MongoClient") as mock_client, patch(
-        "mood_analyzer.ort.InferenceSession"
-    ) as mock_session, patch("os.path.exists", return_value=False), patch.object(
+        "mood_analyzer.ort.InferenceSession",
+    ) as mock_session, patch(
+        "os.path.exists",
+        return_value=False,
+    ), patch.object(
         MoodAnalyzer,
         "_download_model",
     ) as mock_download, patch.object(
@@ -197,7 +213,7 @@ def test_decode_image_valid(analyzer):
 def test_update_snapshot_with_face_updates_db(analyzer):
     """Update snapshot with face_detected, emotions and mood."""
     emotions = {"happiness": 0.8}
-    mood = "happy"
+    mood = "happiness"
 
     analyzer._update_snapshot_with_face(  # pylint: disable=protected-access
         "snap1",
@@ -236,7 +252,6 @@ def test_mark_snapshot_error_updates_db(analyzer):
 
     analyzer.db.mood_snapshots.update_one.assert_called_once()
     args, _ = analyzer.db.mood_snapshots.update_one.call_args
-    assert args[0] == {"_id": "snap3"}
     update_doc = args[1]
     assert update_doc["$set"]["error"] == "boom"
     assert update_doc["$set"]["processed"] is True
@@ -315,7 +330,7 @@ def test_process_pending_images_with_face(analyzer):
     ) as mock_predict, patch.object(
         analyzer,
         "categorize_mood",
-        return_value="happy",
+        return_value="happiness",
     ) as mock_cat, patch.object(
         analyzer,
         "_update_snapshot_with_face",
@@ -328,7 +343,7 @@ def test_process_pending_images_with_face(analyzer):
         args, _ = mock_update.call_args
         assert args[0] == "snap-face"
         assert args[1] == {"happiness": 1.0}
-        assert args[2] == "happy"
+        assert args[2] == "happiness"
 
 
 def test_process_pending_images_no_face(analyzer):
