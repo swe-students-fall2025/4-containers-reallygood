@@ -34,4 +34,4 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017/testdb
           MONGO_DB_NAME: testdb
-        run: pipenv run pytest
+        run: pipenv run pytest --cov=app --cov-report=term-missing --cov-fail-under=80

@@ -10,12 +10,14 @@ numpy = "*"
 pillow = "*"
 pymongo = "*"
 python-dotenv = "*"
+tomli = "*"
 
 [dev-packages]
 pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 black = "*"
+exceptiongroup = "*"
 
 [requires]
 python_version = "3.10"
