@@ -50,9 +50,7 @@ def analyzer_fixture(mock_mongodb, mock_onnx_session):
         MoodAnalyzer,
         "_ensure_cascade_file",
         return_value="/tmp/cascade.xml",
-    ), patch(
-        "cv2.CascadeClassifier"
-    ):
+    ), patch("cv2.CascadeClassifier"):
         return MoodAnalyzer("mongodb://test:27017/test")
 
 
@@ -203,9 +201,7 @@ def test_load_model_downloads_when_missing():
 def test_download_model_uses_urlretrieve(analyzer, tmp_path):
     """Ensure _download_model uses urllib to fetch the ONNX file."""
     analyzer.model_path = str(tmp_path / "emotion-ferplus-8.onnx")
-    with patch(
-        "mood_analyzer.urllib.request.urlretrieve"
-    ) as mock_urlretrieve:
+    with patch("mood_analyzer.urllib.request.urlretrieve") as mock_urlretrieve:
         analyzer._download_model()  # pylint: disable=protected-access
         mock_urlretrieve.assert_called_once()
 
