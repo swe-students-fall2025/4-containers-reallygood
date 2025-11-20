@@ -87,13 +87,13 @@ This command will:
 - Build Docker images for the web app and ML client
 - Start MongoDB container
 - Start the machine learning client (background processing)
-- Start the web application (accessible at http://localhost:5000)
+- Start the web application (accessible at http://localhost:5001)
 
 ### 4. Access the Dashboard
 
 Open your browser and navigate to:
 ```
-http://localhost:5000/dashboard
+http://localhost:5001/dashboard
 ```
 
 ## Usage Guide
