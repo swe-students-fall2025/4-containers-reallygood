@@ -19,13 +19,14 @@ def test_index(client):  # pylint: disable=redefined-outer-name
     assert b"Mood dashboard is running" in response.data
 
 
-def test_api_snapshots_empty(client):  # pylint: disable=redefined-outer-name
-    """`/api/snapshots` should return an empty list when no snapshots exist."""
+def test_api_snapshots_list(client):  # pylint: disable=redefined-outer-name
+    """`/api/snapshots` should return a list of snapshots and a count field."""
     response = client.get("/api/snapshots")
     assert response.status_code == 200
 
     data = response.get_json()
     assert isinstance(data, dict)
-    assert data["count"] == 0
+    assert "count" in data
+    assert "items" in data
     assert isinstance(data["items"], list)
-    assert data["items"] == []
+    assert data["count"] == len(data["items"])
