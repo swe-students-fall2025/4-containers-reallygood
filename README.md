@@ -1,6 +1,8 @@
 # Study Mood Tracker
 
-![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
+[![Web App CI](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/web-app-ci.yml/badge.svg)](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/web-app-ci.yml)
+[![ML Client CI](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/ml-client-ci.yml/badge.svg)](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/ml-client-ci.yml)
+[![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml)
 
 An AI-powered containerized application that tracks and analyzes students' emotions and focus levels during study sessions using webcam-based facial expression recognition.
 
