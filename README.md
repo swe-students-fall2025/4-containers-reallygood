@@ -66,7 +66,12 @@ The `.env` file should contain:
 
 ```env
 # MongoDB Atlas connection string (or use local MongoDB)
-MONGO_URI=mongodb://mongodb:27017/study_mood_tracker
+# Replace "User" to "projectMLManagers"
+# Replace "Password" to "XRxfptzQhutyI2J5"
+MONGO_URI=mongodb+srv://User:Password@cluster0.mrntf.mongodb.net/
+
+# If you prefer use the mongodb in docker container
+# You can change "MONGO_URI" to "mongodb://mongodb:27017/study_mood_tracker"
 
 # Database name
 MONGO_DB_NAME=study_mood_tracker
