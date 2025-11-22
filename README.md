@@ -293,9 +293,10 @@ The browser requires HTTPS for webcam access (except on localhost). If testing r
 1. Use `localhost` or `127.0.0.1`
 2. Or set up HTTPS with a reverse proxy
 
-## CI/CD
+## CI
 
 The project includes GitHub Actions workflows:
 
 - **Lint Workflow** (`.github/workflows/lint.yml`): Runs `pylint` and `black` on every push/PR
 - **ML Client CI** (`.github/workflows/ml-client-ci.yml`): Runs tests with 80%+ coverage requirement
+- **Web App CI** (`.github/workflows/ml-client-ci.yml`): Runs tests with 80%+ coverage requirement
