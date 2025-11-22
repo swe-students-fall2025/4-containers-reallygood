@@ -12,6 +12,7 @@ An AI-powered containerized application that tracks and analyzes students' emoti
 - **Gavin Guo** - [Gavin Guo](https://github.com/GavinGuoSZ)
 - **Leo Li** - [Leo Li](https://github.com/LiShangcheng)
 - **Hanjun Deng** - [Hanjun Deng](https://github.com/Deng-Hanjun)
+- **Haonan Cai** - [Haonan Cai](https://github.com/TogawaSaki0214)
 
 ## Project Overview
 
